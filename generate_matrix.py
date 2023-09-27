@@ -6,35 +6,6 @@ from matplotlib.colors import ListedColormap
 OPEN = 1
 CLOSED = 0
 
-# def display_image(matrix):
-#     # Define a color map where:
-#     #  0 is mapped to white
-#     #  1 is mapped to black
-#     #  2 is mapped to gold ( BOT )
-#     #  3 is mapped to purple ( GOAL )
-#     #  4 is mapped to red (FIRE)
-#     colors = [(1, 1, 1), (0, 0, 0), (1, 0.84, 0), (0.5, 0, 0.5), (1, 0, 0)] # R, G, B
-#     n_bins = [4]  # Discretizes the interpolation into bins
-#     cmap_name = 'custom1'
-#     cm = ListedColormap(colors, name=cmap_name, N=None)
-    
-#     # Display the image
-#     border_thickness = 0.5
-#     plt.imshow(matrix, cmap=cm, vmin=0, vmax=3,
-#                extent=[-border_thickness, matrix.shape[1] + border_thickness,
-#                        matrix.shape[0] + border_thickness, -border_thickness])
-#     plt.axis('off')  # Turn off the axis
-#     plt.gca().set_xlim([-border_thickness, matrix.shape[1] + border_thickness])
-#     plt.gca().set_ylim([matrix.shape[0] + border_thickness, -border_thickness])
-    
-#     # Setting a border around the graph using axhline and axvline
-#     plt.gca().axhline(y=-border_thickness, color='black', linewidth=border_thickness * 2)
-#     plt.gca().axhline(y=matrix.shape[0] + border_thickness, color='black', linewidth=border_thickness * 2)
-#     plt.gca().axvline(x=-border_thickness, color='black', linewidth=border_thickness * 2)
-#     plt.gca().axvline(x=matrix.shape[1] + border_thickness, color='black', linewidth=border_thickness * 2)
-    
-#     plt.show()
-
 def display_image(matrix):
     # Define a color map where:
     #  0 is mapped to black
@@ -44,13 +15,13 @@ def display_image(matrix):
     #  4 is mapped to red (fire)
     #  5 path (244/255, 196/255, 212/255)
 
-    colors = [(37/255, 29/255, 41/255), (1, 1, 1), (140/255, 118/255, 190/255),(234/255, 146/255, 171/255), (119/255, 130/255, 153/255)]  # R, G, B
+    colors = [(37/255, 29/255, 41/255), (1, 1, 1), (140/255, 118/255, 190/255),(234/255, 146/255, 171/255), (119/255, 130/255, 153/255), (244/255, 196/255, 212/255)]  # R, G, B
     cmap_name = 'custom1'
     cm = ListedColormap(colors, name=cmap_name, N=None)
     
     # Display the image
     border_thickness = 0.5
-    plt.imshow(matrix, cmap=cm, vmin=0, vmax=4,  # Set vmax to 4
+    plt.imshow(matrix, cmap=cm, vmin=0, vmax=5,  # Set vmax to 4
                extent=[-border_thickness, matrix.shape[1] + border_thickness,
                        matrix.shape[0] + border_thickness, -border_thickness])
     plt.axis('off')  # Turn off the axis
