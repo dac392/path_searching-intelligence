@@ -16,7 +16,6 @@ class ship_t():
 	def display_game_board(self):
 		self.game_board[self.bot] = 2
 		self.game_board[self.button] = 3
-		print(self.game_board)
 		display_image(self.game_board)
 
 
