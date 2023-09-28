@@ -5,6 +5,7 @@ from matplotlib.colors import ListedColormap
 
 OPEN = 1
 CLOSED = 0
+FIRE = 4
 
 def display_image(matrix):
     # Define a color map where:
@@ -15,13 +16,26 @@ def display_image(matrix):
     #  4 is mapped to red (fire)
     #  5 path (244/255, 196/255, 212/255)
 
-    colors = [(37/255, 29/255, 41/255), (1, 1, 1), (140/255, 118/255, 190/255),(234/255, 146/255, 171/255), (119/255, 130/255, 153/255), (244/255, 196/255, 212/255)]  # R, G, B
+    closed_color = (0, 0, 0)
+    open_color = (1, 1, 1)
+    original_position = (0, 0.6588, 0.4196)
+    goal_color = (1, 0.7529, 0.7961)
+    fire_color = (1,0.647,0)
+    path_color = (0.2, 1, 0.2)
+    burning_color = (0, 0.3922, 0)
+    og_is_goal_color = (1, 0.8431, 0)
+    burned_path_color = (1, 0.4118, 0.3804)
+    killed_color = (0.6902, 0.8784, 0.902)
+    initial_fire_color = (1, 0, 0)
+
+
+    colors = [ closed_color, open_color, original_position, goal_color, fire_color, path_color, burning_color, og_is_goal_color, burned_path_color, killed_color, initial_fire_color]  # R, G, B
     cmap_name = 'custom1'
     cm = ListedColormap(colors, name=cmap_name, N=None)
     
     # Display the image
     border_thickness = 0.5
-    plt.imshow(matrix, cmap=cm, vmin=0, vmax=5,  # Set vmax to 4
+    plt.imshow(matrix, cmap=cm, vmin=0, vmax=10,  # Set vmax to 4
                extent=[-border_thickness, matrix.shape[1] + border_thickness,
                        matrix.shape[0] + border_thickness, -border_thickness])
     plt.axis('off')  # Turn off the axis
@@ -34,8 +48,13 @@ def display_image(matrix):
     plt.gca().axvline(x=-border_thickness, color='black', linewidth=border_thickness * 2)
     plt.gca().axvline(x=matrix.shape[1] + border_thickness, color='black', linewidth=border_thickness * 2)
     
+
+    plt.gca().invert_yaxis()
     plt.show()
 
+#generates a random number between 0 and 1
+def get_random():
+    return random.random()
 
 
 def generate_random_coordinate(n):
@@ -122,6 +141,9 @@ def get_neighbors(matrix, start, n):
     neighbors = [(start[0] + d[0], start[1] + d[1]) for d in directions]
     valid_neighbors = [(x, y) for x, y in neighbors if 0 < x < n - 1 and 0 < y < n - 1]
     return valid_neighbors
+
+def get_flamability_matrix(n):
+    return np.random.rand(n, n)
 
 if __name__ == "__main__":
 

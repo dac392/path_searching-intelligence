@@ -1,0 +1,11 @@
+Color list:
+	closed:					black
+	open:					white
+	original position:		green
+	goal:					pink
+	fire:					red
+	path taken:				light green
+	og was burned:			dark green
+	goal was burned:		dark green
+	og is goal:				yellow
+
