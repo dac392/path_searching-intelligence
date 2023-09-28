@@ -19,7 +19,7 @@ def display_image(matrix):
     closed_color = (0, 0, 0)
     open_color = (1, 1, 1)
     original_position = (0, 0.6588, 0.4196)
-    goal_color = (1, 0.7529, 0.7961)
+    goal_color = (0.8,0,0.8)
     fire_color = (1,0.647,0)
     path_color = (0.2, 1, 0.2)
     burning_color = (0, 0.3922, 0)

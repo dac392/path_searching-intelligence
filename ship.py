@@ -154,9 +154,6 @@ class ship_t():
 		return valid_neighbors
 
 	def display_game_board(self):
-		with open("gameboard_info.txt", "r") as file:
-			content = file.read()
-			print(content)
 
 		display_image(self.game_board)
 

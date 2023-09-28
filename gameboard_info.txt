@@ -1,11 +1,16 @@
+simulation info:
+	150, 0.5
+
 Color list:
 	closed:					black
 	open:					white
-	original position:		green
-	goal:					pink
-	fire:					red
-	path taken:				light green
-	og was burned:			dark green
-	goal was burned:		dark green
+	original position:			green
+	goal:					neon purple
+	original fire:				red
+	path taken by fire:			orange
+	path taken by bot:			neon green
+	og was burned:				dark green
+	goal was burned:			dark green
 	og is goal:				yellow
+	bot was burned:				blue
 
