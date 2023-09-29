@@ -154,8 +154,22 @@ class ship_t():
 		return valid_neighbors
 
 	def display_game_board(self):
-
 		display_image(self.game_board)
+
+	def refresh(self):
+		for i in range(self.size):
+			for j in range(self.size):
+				if self.game_board[i][j] not in (0, 1):
+					self.game_board[i][j] = OPEN
+
+		self.bot = self.original_position
+		self.game_board[self.original_position] = BOT
+		self.game_board[self.goal] = GOAL
+		self.game_board[self.initial_fire] = FIRE
+
+		self.burning_nodes.clear()
+		self.burning_nodes.add(self.initial_fire)
+
 
 
 		

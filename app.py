@@ -34,17 +34,21 @@ def run_simulation(ship, path, heuristic=None, mode=1):
 
 def main(board_size, flamability, info=None):
 	ship = ship_t(board_size, flamability)
-	shortest_path = ship.calculate_shortest_path()
 
+	shortest_path_1 = ship.calculate_shortest_path()
+	status_1, path_1 = run_simulation(ship, shortest_path_1)
+	print("Success") if status_1 == SUCCESS else print("Failure")
+	debug(ship, path_1)
 
-	status, path = run_simulation(ship, shortest_path)
-	print("Success") if status == SUCCESS else print("Failure")
+	ship.refresh()
+	shortest_path_2 = ship.calculate_shortest_path()
+	status_2, path_2 = run_simulation(ship, shortest_path_2)
+	print("Success") if status_2 == SUCCESS else print("Failure")
+	debug(ship, path_2)
 
 	if info:
 		print(info)
-		
-	debug(ship, path)
-	# ship.refresh()
+
 
 
 	# run_simulation(ship, shortest_path, ship.heuristic_1, 2)
