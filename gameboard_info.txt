@@ -1,5 +1,5 @@
 simulation info:
-	150, 0.5
+	50, 0.5
 
 Color list:
 	closed:					black

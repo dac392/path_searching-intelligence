@@ -41,6 +41,10 @@ class ship_t():
 		self.burning_nodes.add(self.initial_fire)
 
 
+	def heuristic_2(self):
+		path = self.calculate_shortest_path()
+		path.pop(0)
+		return path
 
 	def apply_scorch(self):
 
@@ -70,8 +74,9 @@ class ship_t():
 		return False
 
 	def can_move(self, position):
-		if self.game_board[position] == OPEN:
+		if self.game_board[position] == OPEN  or self.game_board[position] == GOAL:
 			return True
+
 		return False
 
 	def move_to(self, position):
@@ -80,15 +85,29 @@ class ship_t():
 	def is_safe(self):
 		return self.bot == self.goal
 
+	def is_doomed(self, bot_path):
+		fire_path =  self.calculate_shortest_path(self.initial_fire, FIRE)
+		if len(fire_path) < len(bot_path):
+			print("Fire is much closer to  button than the bot is")
+			return True
+		if self.initial_fire == self.goal:
+			print("Initial Fire spawned on the Goal")
+			return True
+		if self.initial_fire == self.original_position:
+			print("Initial Fire spawned on the Bot")
+			return True
+
+		return False
 
 
 	def calculate_shortest_path(self):
+		position = self.bot
 		fringe = []
-		fringe.append(self.bot)
+		fringe.append(position)
 		distance = {}
-		distance[self.bot] = 0
+		distance[position] = 0
 		parent = {}
-		parent[self.bot] = None
+		parent[position] = None
 
 		while fringe:
 			curr = fringe.pop(0)
@@ -104,6 +123,34 @@ class ship_t():
 
 		return None
 
+	def calculate_fire_path(self):
+		fringe = []
+		fringe.append(self.initial_fire)
+		distance = {}
+		distance[self.initial_fire] = 0
+		parent =  {}
+		parent[self.initial_fire] = None 
+
+		while fringe:
+			curr = fringe.pop(0)
+			if curr == self.goal:
+				return self.build_path(parent, curr)
+			neighbors = self.get_neighbors_of_fire(curr)
+			for neighbor in neighbors:
+				temp_distance = distance[curr]+1
+				if neighbor not in distance or temp_distance < distance[neighbor]:
+					distance[neighbor] = temp_distance
+					fringe.append(neighbor)
+					parent[neighbor] = curr
+		return None
+
+	def get_neighbors_of_fire(self, position):
+		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+		neighbors = [(position[0] + d[0], position[1] + d[1]) for d in directions]
+		interior_neighbors = [(x, y) for x, y in neighbors if 0 < x < self.size - 1 and 0 < y < self.size - 1]
+		valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN, GOAL, BOT] ]
+		return valid_neighbors
+
 	def set_path(self, path):
 
 		if self.game_board[self.initial_fire] != INITIAL_FIRE:
@@ -116,8 +163,6 @@ class ship_t():
 			self.game_board[self.goal] = OG_IS_GOAL
 		if self.bot in self.burning_nodes:
 			self.game_board[self.bot] = KILLED
-
-
 
 		for pos in path:
 			if pos != self.bot and pos != self.goal: 

@@ -2,26 +2,34 @@ from ship import ship_t
 
 SUCCESS = 0
 FAILURE = -1
+BOT1 = 1
+BOT2 = 2
+BOT3 = 3
+BOT4 = 4
+
+DEBUGING = True
 
 def debug(ship, path):
 	ship.set_path(path)
 	ship.display_game_board()
 
 
-def run_simulation(ship, path, heuristic=None, mode=1):
+def run_simulation(ship, path, heuristic=None, bot=BOT1):
 	if not path:
 		return FAILURE, []
+
+	if not DEBUGING and ship.is_doomed(path):
+		return FAILURE, []
+
 	path.pop(0)
 	path_taken = []
 
 	while not ship.is_safe():
 		next_position = path.pop(0)
 
-		if ship.can_move(next_position) or mode==1:
+		if ship.can_move(next_position) or bot==BOT1:
 			ship.move_to(next_position)
 			path_taken.append(next_position)
-		# else:
-		# 	heuristic(path, next_position)
 
 		# could check if we are done rn if its convinient
 
@@ -29,6 +37,9 @@ def run_simulation(ship, path, heuristic=None, mode=1):
 			ship.apply_scorch()
 			if ship.has_burned_down():
 				return FAILURE, path_taken
+
+		if bot != BOT1 and not ship.is_safe():
+			path = heuristic()
 
 	return SUCCESS, path_taken
 
@@ -42,11 +53,11 @@ def main(board_size, flamability, info=None):
 
 	ship.refresh()
 	shortest_path_2 = ship.calculate_shortest_path()
-	status_2, path_2 = run_simulation(ship, shortest_path_2)
+	status_2, path_2 = run_simulation(ship, shortest_path_2, ship.heuristic_2, BOT2)
 	print("Success") if status_2 == SUCCESS else print("Failure")
 	debug(ship, path_2)
 
-	if info:
+	if DEBUGING and info:
 		print(info)
 
 
