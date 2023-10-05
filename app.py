@@ -40,11 +40,13 @@ def run_simulation(ship, path, heuristic=None, bot=BOT1):
 
 		if bot != BOT1 and not ship.is_safe():
 			path = heuristic()
+			if not path:
+				return FAILURE, path_taken
 
 	return SUCCESS, path_taken
 
 def driver(ship, heuristic, bot):
-	shortest_path = ship.calculate_shortest_path()
+	shortest_path = ship.calculate_shortest_path() if bot != BOT3 else heuristic()
 	status, path = run_simulation(ship, shortest_path, heuristic, bot)
 	print("Success") if status == SUCCESS else print("Failure")
 	debug(ship, path)
@@ -55,7 +57,7 @@ def main(board_size, flamability, info=None):
 
 	driver(ship, None, BOT1)
 	driver(ship, ship.heuristic_2, BOT2)
-	# driver(ship, ship.heuristic_3, BOT3)
+	driver(ship, ship.heuristic_3, BOT3)
 	# driver(ship, ship.heuristic_4, BOT4)
 	if DEBUGING and info:
 		print(info)

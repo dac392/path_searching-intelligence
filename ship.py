@@ -16,6 +16,9 @@ BURNED_PATH = 8
 KILLED = 9
 INITIAL_FIRE = 10
 
+PADDING = True
+BOT3 = 35
+
 
 class ship_t():
 	"""docstring for Ship_t"""
@@ -23,14 +26,14 @@ class ship_t():
 		self.size = size
 		self.flamability = flamability
 		self.game_board = generate_matrix(size)
-		# self.active_board = [row[:] for row in game_board]
 		self.original_position = generate_random_coordinate(size)
 		self.bot = self.original_position
 		self.goal = generate_random_coordinate(size)
 		self.initial_fire = generate_random_coordinate(size)
 
-		# probability matrix
+		# fire sets
 		self.burning_nodes = set()
+		self.radiance = set()
 
 		#update the matrix to have the goal and bot positions
 		self.game_board[self.original_position] = BOT
@@ -43,13 +46,46 @@ class ship_t():
 
 	def heuristic_2(self):
 		path = self.calculate_shortest_path()
+		if path is None:
+			print("I couldn't find a path and I'm freaking out")
+			# breakpoint()
+			# self.freak_out()
+			return []
+
 		path.pop(0)
 		return path
 
+	def heuristic_3(self):
+		self.update_radiance()
+		path = self.calculate_shortest_path( PADDING )
+		if path is None:
+			print("I couldn't find a path and I'm freaking out")
+			self.freak_out()
+			return []
+		path.pop(0)
+		return path
+
+	def freak_out(self):
+		variables = {}
+		variables["size"] = self.size
+		variables["flamability"] = self.flamability
+		variables["original_position"] = self.original_position
+		variables["goal"] = self.goal 
+		variables["initial_fire"] = self.initial_fire
+
+		with open('meta_data.txt', 'w') as file:
+
+			for key, value in variables.items():
+				file.write(f"{key}: {value}\n")
+			file.write(f"Gameboard:\n")
+			for row in self.game_board:
+				line = ','.join(map(str, row))
+				file.write(line+'\n')
+
+	# < SCORCH AND FIRE METHODS >
 	def apply_scorch(self):
 
 		might_scorch = {}
-		# go through the list of burning nodes and get their neighbors
 		for node in self.burning_nodes:
 			flamable_neighbors = self.get_neighbors(node, FIRE)
 			for position in flamable_neighbors:
@@ -72,6 +108,15 @@ class ship_t():
 			return True
 
 		return False
+
+	def update_radiance(self):
+		self.radiance.clear()
+
+		for ember in self.burning_nodes:
+			neighbors = self.get_neighbors(ember, BOT3) # get the nodes around the fire < excludes the goal >
+			for neighbor in neighbors:
+				if neighbor not in self.burning_nodes and neighbor not in self.radiance:
+					self.radiance.add(neighbor)
 
 	def can_move(self, position):
 		if self.game_board[position] == OPEN  or self.game_board[position] == GOAL:
@@ -99,8 +144,49 @@ class ship_t():
 
 		return False
 
+	# < NEIGHBORS >
 
-	def calculate_shortest_path(self):
+	def get_neighbors(self, position, mode):
+		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+		neighbors = [(position[0] + d[0], position[1] + d[1]) for d in directions]
+		interior_neighbors = [(x, y) for x, y in neighbors if 0 < x < self.size - 1 and 0 < y < self.size - 1]
+		valid_neighbors = None
+
+		if mode == BOT:
+			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN,GOAL] ]
+		elif mode == BURNING:
+			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [FIRE] ]
+		elif mode == BOT3:
+			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN] ]
+		else: # FIRE
+			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN, GOAL, BOT, PATH] ]
+
+		return valid_neighbors
+
+	def get_complex_neighors(self, curr):
+		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+		valid_neighbors = []
+
+		for d in directions:
+			x, y = position[0] + d[0], position[1] + d[1]
+
+			if 0 < x < self.size - 1 and 0 < y < self.size - 1: # if it is an interior neighbor
+				if self.game_board[x][y] in [OPEN, GOAL, BOT]:
+					valid_neighbors.append((x, y))
+
+		return valid_neighbors
+
+
+
+	def get_neighbors_of_fire(self, position):
+		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+		neighbors = [(position[0] + d[0], position[1] + d[1]) for d in directions]
+		interior_neighbors = [(x, y) for x, y in neighbors if 0 < x < self.size - 1 and 0 < y < self.size - 1]
+		valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN, GOAL, BOT] ]
+		return valid_neighbors
+
+	# < paths >
+	def calculate_shortest_path(self, modified=False):
 		position = self.bot
 		fringe = []
 		fringe.append(position)
@@ -115,6 +201,10 @@ class ship_t():
 				return self.build_path(parent, curr)
 			neighbors = self.get_neighbors(curr, BOT)
 			for neighbor in neighbors:
+
+				if modified and neighbor in self.radiance:
+					continue
+
 				temp_distance = distance[curr]+1
 				if neighbor not in distance or temp_distance < distance[neighbor]:
 					distance[neighbor] = temp_distance
@@ -144,12 +234,6 @@ class ship_t():
 					parent[neighbor] = curr
 		return None
 
-	def get_neighbors_of_fire(self, position):
-		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
-		neighbors = [(position[0] + d[0], position[1] + d[1]) for d in directions]
-		interior_neighbors = [(x, y) for x, y in neighbors if 0 < x < self.size - 1 and 0 < y < self.size - 1]
-		valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN, GOAL, BOT] ]
-		return valid_neighbors
 
 	def set_path(self, path):
 
@@ -181,22 +265,6 @@ class ship_t():
 
 			fringe.append(curr)
 
-
-
-	def get_neighbors(self, position, mode):
-		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
-		neighbors = [(position[0] + d[0], position[1] + d[1]) for d in directions]
-		interior_neighbors = [(x, y) for x, y in neighbors if 0 < x < self.size - 1 and 0 < y < self.size - 1]
-		valid_neighbors = None
-
-		if mode == BOT:
-			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN,GOAL] ]
-		elif mode == BURNING:
-			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [FIRE] ]
-		else: # FIRE
-			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN, GOAL, BOT, PATH] ]
-
-		return valid_neighbors
 
 	def display_game_board(self):
 		display_image(self.game_board)
