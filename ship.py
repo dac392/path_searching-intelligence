@@ -4,6 +4,8 @@ from generate_matrix import display_image
 from generate_matrix import get_flamability_matrix
 from generate_matrix import get_random
 
+from algorithms import a_star
+
 CLOSED = 0
 OPEN = 1
 BOT = 2
@@ -45,49 +47,28 @@ class ship_t():
 
 
 	def heuristic_2(self):
-		path = self.calculate_shortest_path()
+		path = self.get_shortest_path(self.bot, self.goal)
 		if path is None:
 			print("I couldn't find a path and I'm freaking out")
-			# breakpoint()
-			# self.freak_out()
 			return []
 
-		path.pop(0)
 		return path
 
 	def heuristic_3(self):
 		self.update_radiance()
-		path = self.calculate_shortest_path( PADDING )
+		path = self.get_shortest_path( self.bot, self.goal, PADDING , self.radiance)
 		if path is None:
 			print("I couldn't find a path and I'm freaking out")
-			self.freak_out()
+			print("btw, you should update heuristic_3 to ignore padding in this case (basically do bot 2)")
 			return []
-		path.pop(0)
 		return path
 
-	def freak_out(self):
-		variables = {}
-		variables["size"] = self.size
-		variables["flamability"] = self.flamability
-		variables["original_position"] = self.original_position
-		variables["goal"] = self.goal 
-		variables["initial_fire"] = self.initial_fire
-
-		with open('meta_data.txt', 'w') as file:
-
-			for key, value in variables.items():
-				file.write(f"{key}: {value}\n")
-			file.write(f"Gameboard:\n")
-			for row in self.game_board:
-				line = ','.join(map(str, row))
-				file.write(line+'\n')
-
-	# < SCORCH AND FIRE METHODS >
+# < SCORCH AND FIRE METHODS >
 	def apply_scorch(self):
 
 		might_scorch = {}
 		for node in self.burning_nodes:
-			flamable_neighbors = self.get_neighbors(node, FIRE)
+			flamable_neighbors = self.get_neighbors(node, [OPEN, GOAL, BOT, PATH])
 			for position in flamable_neighbors:
 				if position not in might_scorch:
 					might_scorch[position] = self.probability_of_scorching(position)
@@ -99,71 +80,23 @@ class ship_t():
 
 	def probability_of_scorching(self, position):
 		q = self.flamability
-		burning_neighbors = self.get_neighbors(position, BURNING) #get fire neighbors
+		burning_neighbors = self.get_neighbors(position, [FIRE]) #get fire neighbors
 		k = len(burning_neighbors)
 		return 1 - (1-q)**k
-
-	def has_burned_down(self):
-		if self.bot in self.burning_nodes or self.goal in self.burning_nodes:
-			return True
-
-		return False
 
 	def update_radiance(self):
 		self.radiance.clear()
 
 		for ember in self.burning_nodes:
-			neighbors = self.get_neighbors(ember, BOT3) # get the nodes around the fire < excludes the goal >
+			neighbors = self.get_neighbors(ember, [OPEN]) # get the nodes around the fire < excludes the goal >
 			for neighbor in neighbors:
 				if neighbor not in self.burning_nodes and neighbor not in self.radiance:
 					self.radiance.add(neighbor)
 
-	def can_move(self, position):
-		if self.game_board[position] == OPEN  or self.game_board[position] == GOAL:
-			return True
 
-		return False
 
-	def move_to(self, position):
-		self.bot = position
-
-	def is_safe(self):
-		return self.bot == self.goal
-
-	def is_doomed(self, bot_path):
-		fire_path =  self.calculate_shortest_path(self.initial_fire, FIRE)
-		if len(fire_path) < len(bot_path):
-			print("Fire is much closer to  button than the bot is")
-			return True
-		if self.initial_fire == self.goal:
-			print("Initial Fire spawned on the Goal")
-			return True
-		if self.initial_fire == self.original_position:
-			print("Initial Fire spawned on the Bot")
-			return True
-
-		return False
-
-	# < NEIGHBORS >
-
-	def get_neighbors(self, position, mode):
-		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
-		neighbors = [(position[0] + d[0], position[1] + d[1]) for d in directions]
-		interior_neighbors = [(x, y) for x, y in neighbors if 0 < x < self.size - 1 and 0 < y < self.size - 1]
-		valid_neighbors = None
-
-		if mode == BOT:
-			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN,GOAL] ]
-		elif mode == BURNING:
-			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [FIRE] ]
-		elif mode == BOT3:
-			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN] ]
-		else: # FIRE
-			valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN, GOAL, BOT, PATH] ]
-
-		return valid_neighbors
-
-	def get_complex_neighors(self, curr):
+# GETTERS
+	def get_neighbors(self, position, allowable):
 		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
 		valid_neighbors = []
 
@@ -171,70 +104,33 @@ class ship_t():
 			x, y = position[0] + d[0], position[1] + d[1]
 
 			if 0 < x < self.size - 1 and 0 < y < self.size - 1: # if it is an interior neighbor
-				if self.game_board[x][y] in [OPEN, GOAL, BOT]:
+				if self.game_board[x][y] in allowable:
 					valid_neighbors.append((x, y))
 
 		return valid_neighbors
 
+	
+
+	def get_shortest_path(self, start, goal, modified=False, radiance=None):
+		path = a_star(self.game_board, start, goal, modified, radiance)
+		if path:
+			path.pop(0)
+		return path
+
+	def get_initial_fire(self):
+		return self.initial_fire
+
+	def get_goal(self):
+		return self.goal
+
+	def get_origin(self):
+		return self.original_position
+
+	def get_flammability(self):
+		return self.flamability
 
 
-	def get_neighbors_of_fire(self, position):
-		directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
-		neighbors = [(position[0] + d[0], position[1] + d[1]) for d in directions]
-		interior_neighbors = [(x, y) for x, y in neighbors if 0 < x < self.size - 1 and 0 < y < self.size - 1]
-		valid_neighbors = [ (x,y) for x,y in interior_neighbors if self.game_board[x][y] in [OPEN, GOAL, BOT] ]
-		return valid_neighbors
-
-	# < paths >
-	def calculate_shortest_path(self, modified=False):
-		position = self.bot
-		fringe = []
-		fringe.append(position)
-		distance = {}
-		distance[position] = 0
-		parent = {}
-		parent[position] = None
-
-		while fringe:
-			curr = fringe.pop(0)
-			if curr == self.goal:
-				return self.build_path(parent, curr)
-			neighbors = self.get_neighbors(curr, BOT)
-			for neighbor in neighbors:
-
-				if modified and neighbor in self.radiance:
-					continue
-
-				temp_distance = distance[curr]+1
-				if neighbor not in distance or temp_distance < distance[neighbor]:
-					distance[neighbor] = temp_distance
-					fringe.append(neighbor)
-					parent[neighbor] = curr
-
-		return None
-
-	def calculate_fire_path(self):
-		fringe = []
-		fringe.append(self.initial_fire)
-		distance = {}
-		distance[self.initial_fire] = 0
-		parent =  {}
-		parent[self.initial_fire] = None 
-
-		while fringe:
-			curr = fringe.pop(0)
-			if curr == self.goal:
-				return self.build_path(parent, curr)
-			neighbors = self.get_neighbors_of_fire(curr)
-			for neighbor in neighbors:
-				temp_distance = distance[curr]+1
-				if neighbor not in distance or temp_distance < distance[neighbor]:
-					distance[neighbor] = temp_distance
-					fringe.append(neighbor)
-					parent[neighbor] = curr
-		return None
-
-
+# SETTERS
 	def set_path(self, path):
 
 		if self.game_board[self.initial_fire] != INITIAL_FIRE:
@@ -254,6 +150,27 @@ class ship_t():
 					self.game_board[pos] = PATH
 				else:
 					self.game_board[pos] = BURNED_PATH
+
+
+# UTILITY
+
+	def has_burned_down(self):
+		if self.bot in self.burning_nodes or self.goal in self.burning_nodes:
+			return True
+
+		return False
+		
+	def can_move(self, position):
+		if self.game_board[position] == OPEN  or self.game_board[position] == GOAL:
+			return True
+
+		return False
+
+	def move_to(self, position):
+		self.bot = position
+
+	def is_safe(self):
+		return self.bot == self.goal
 
 	def build_path(self, parent, position):
 		fringe = []
@@ -283,6 +200,38 @@ class ship_t():
 		self.burning_nodes.clear()
 		self.burning_nodes.add(self.initial_fire)
 
+	def freak_out(self):
+		variables = {}
+		variables["size"] = self.size
+		variables["flamability"] = self.flamability
+		variables["original_position"] = self.original_position
+		variables["goal"] = self.goal 
+		variables["initial_fire"] = self.initial_fire
+
+		with open('meta_data.txt', 'w') as file:
+
+			for key, value in variables.items():
+				file.write(f"{key}: {value}\n")
+			file.write(f"Gameboard:\n")
+			for row in self.game_board:
+				line = ','.join(map(str, row))
+				file.write(line+'\n')
+
+
+# deprecated
+	def is_doomed(self, bot_path):
+		fire_path =  self.calculate_shortest_path(self.initial_fire, FIRE)
+		if len(fire_path) < len(bot_path):
+			print("Fire is much closer to  button than the bot is")
+			return True
+		if self.initial_fire == self.goal:
+			print("Initial Fire spawned on the Goal")
+			return True
+		if self.initial_fire == self.original_position:
+			print("Initial Fire spawned on the Bot")
+			return True
+
+		return False
 
 
 		

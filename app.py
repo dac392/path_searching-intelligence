@@ -18,10 +18,9 @@ def run_simulation(ship, path, heuristic=None, bot=BOT1):
 	if not path:
 		return FAILURE, []
 
-	if not DEBUGING and ship.is_doomed(path):
-		return FAILURE, []
+	# if not DEBUGING and ship.is_doomed(path):
+	# 	return FAILURE, []
 
-	path.pop(0)
 	path_taken = []
 
 	while not ship.is_safe():
@@ -46,7 +45,8 @@ def run_simulation(ship, path, heuristic=None, bot=BOT1):
 	return SUCCESS, path_taken
 
 def driver(ship, heuristic, bot):
-	shortest_path = ship.calculate_shortest_path() if bot != BOT3 else heuristic()
+	shortest_path = ship.get_shortest_path(ship.get_origin(), ship.get_goal()) if bot != BOT3 else heuristic()
+
 	status, path = run_simulation(ship, shortest_path, heuristic, bot)
 	print("Success") if status == SUCCESS else print("Failure")
 	debug(ship, path)
