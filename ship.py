@@ -129,6 +129,12 @@ class ship_t():
 	def get_flammability(self):
 		return self.flamability
 
+	def get_size(self):
+		return self.size
+
+	def get_grid(self):
+		return self.game_board
+
 
 # SETTERS
 	def set_path(self, path):
@@ -159,7 +165,7 @@ class ship_t():
 			return True
 
 		return False
-		
+
 	def can_move(self, position):
 		if self.game_board[position] == OPEN  or self.game_board[position] == GOAL:
 			return True
