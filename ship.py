@@ -52,7 +52,7 @@ class ship_t():
 	def heuristic_2(self):
 		path = self.get_shortest_path(self.bot, self.goal)
 		if path is None:
-			print("I couldn't find a path and I'm freaking out")
+			# print("I couldn't find a path and I'm freaking out")
 			return []
 
 		return path
@@ -130,12 +130,6 @@ class ship_t():
 			path.pop(0)
 		return path
 
-	# def get_simulated_path(self):
-	# 	path = walmart_brand_monte_carlo(self.bot, self.goal, self.game_board, self.simulation.game_board, self.time_step)
-	# 	if path:
-	# 		path.pop(0)
-	# 	return path
-
 	def get_simulated_path(self):
 		path = great_value_monte_carlo(self.bot, self.goal, self.game_board, self.simulation, self.flamability)
 		if path:
@@ -189,10 +183,12 @@ class ship_t():
 # UTILITY
 
 	def has_burned_down(self):
-		if self.bot in self.burning_nodes or self.goal in self.burning_nodes:
-			return True
+		if self.bot in self.burning_nodes:
+			return True, "bot on fire"
+		if self.goal in self.burning_nodes:
+			return True, "goal on fire"
 
-		return False
+		return False, None
 
 	def can_move(self, position):
 		if self.game_board[position] == OPEN  or self.game_board[position] == GOAL:
@@ -258,20 +254,20 @@ class ship_t():
 		bot_path =  self.get_shortest_path(self.original_position, self.goal)
 
 		if len(bot_path)*3 < len(fire_path) or len(bot_path) < 0.0025*(self.size-1)*(self.size-1):
-			print("bot is quite close to the goal")
-			return False , bot_path, fire_path
+			#print("bot is quite close to the goal")
+			return False , bot_path, "probably activated fire suppression"
 		if bot_path is None:
-			print("no bot path found")
-			return True, [], fire_path
+			#print("no bot path found")
+			return True, [], "could not find path to goal"
 		if len(fire_path)/self.flamability < len(bot_path):
-			print("Fire is much closer to  button than the bot is")
-			return True , bot_path, fire_path
+			#print("Fire is much closer to  button than the bot is")
+			return True , [], "proably goal is on fire"
 		if self.initial_fire == self.goal:
-			print("Initial Fire spawned on the Goal")
-			return True , bot_path, fire_path
+			#print("Initial Fire spawned on the Goal")
+			return True , [], "initial fire spawned on the goal"
 		if self.initial_fire == self.original_position:
-			print("Initial Fire spawned on the Bot")
-			return True , bot_path, fire_path
+			#print("Initial Fire spawned on the Bot")
+			return True , [], "initial fire spawned on the bot"
 
 		return False, None, None
 
