@@ -47,7 +47,6 @@ class ship_t():
 		# add initial fire to the fire set
 		self.burning_nodes.add(self.initial_fire)
 		self.simulation = None
-		self.time_step = 0
 
 
 	def heuristic_2(self):
@@ -62,9 +61,7 @@ class ship_t():
 		self.update_radiance()
 		path = self.get_shortest_path( self.bot, self.goal, PADDING , self.radiance)
 		if path is None:
-			print("I couldn't find a path and I'm freaking out")
-			print("btw, you should update heuristic_3 to ignore padding in this case (basically do bot 2)")
-			return []
+			return self.heuristic_2()
 		return path
 
 	def heuristic_4(self):
