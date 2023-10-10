@@ -18,8 +18,14 @@ def run_simulation(ship, path, heuristic=None, bot=BOT1):
 	if not path:
 		return FAILURE, []
 
-	# if not DEBUGING and ship.is_doomed(path):
-	# 	return FAILURE, []
+	is_doomed, bot_path, fire_path = ship.is_doomed(path)
+	if is_doomed:
+		return FAILURE, bot_path
+	elif not is_doomed and bot_path:
+		return SUCCESS, bot_path
+
+	if bot == BOT4:
+		path = heuristic()
 
 	path_taken = []
 
@@ -29,8 +35,6 @@ def run_simulation(ship, path, heuristic=None, bot=BOT1):
 		if ship.can_move(next_position) or bot==BOT1:
 			ship.move_to(next_position)
 			path_taken.append(next_position)
-
-		# could check if we are done rn if its convinient
 
 		if not ship.is_safe():
 			ship.apply_scorch()

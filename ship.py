@@ -5,7 +5,7 @@ from generate_matrix import get_flamability_matrix
 from generate_matrix import get_random
 
 from algorithms import a_star
-from algorithms import walmart_brand_monte_carlo
+from algorithms import great_value_monte_carlo
 from ship_3D import ship_3D
 
 CLOSED = 0
@@ -68,18 +68,12 @@ class ship_t():
 		return path
 
 	def heuristic_4(self):
-		if self.simulation is None:
-			self.simulation = ship_3D(self, self.size)
-			self.simulation.run_simulation(100)
-			self.time_step = 1
-
+		sim_ship = ship_3D(self, 3)
+		self.simulation = sim_ship.run_simulation(15)
 		path = self.get_simulated_path()
 		if path is None:
 			return []
-
 		return path
-
-
 
 
 
@@ -139,8 +133,14 @@ class ship_t():
 			path.pop(0)
 		return path
 
+	# def get_simulated_path(self):
+	# 	path = walmart_brand_monte_carlo(self.bot, self.goal, self.game_board, self.simulation.game_board, self.time_step)
+	# 	if path:
+	# 		path.pop(0)
+	# 	return path
+
 	def get_simulated_path(self):
-		path = walmart_brand_monte_carlo(self.bot, self.goal, self.game_board, self.simulation.game_board[self.time_step])
+		path = great_value_monte_carlo(self.bot, self.goal, self.game_board, self.simulation, self.flamability)
 		if path:
 			path.pop(0)
 		return path
@@ -162,6 +162,9 @@ class ship_t():
 
 	def get_grid(self):
 		return self.game_board
+
+	def get_burning_nodes(self):
+		return self.burning_nodes
 
 
 # SETTERS
@@ -254,18 +257,26 @@ class ship_t():
 
 # deprecated
 	def is_doomed(self, bot_path):
-		fire_path =  self.calculate_shortest_path(self.initial_fire, FIRE)
-		if len(fire_path) < len(bot_path):
+		fire_path =  self.get_shortest_path(self.initial_fire, self.goal)
+		bot_path =  self.get_shortest_path(self.original_position, self.goal)
+
+		if len(bot_path)*3 < len(fire_path) or len(bot_path) < 0.0025*(self.size-1)*(self.size-1):
+			print("bot is quite close to the goal")
+			return False , bot_path, fire_path
+		if bot_path is None:
+			print("no bot path found")
+			return True, [], fire_path
+		if len(fire_path)/self.flamability < len(bot_path):
 			print("Fire is much closer to  button than the bot is")
-			return True
+			return True , bot_path, fire_path
 		if self.initial_fire == self.goal:
 			print("Initial Fire spawned on the Goal")
-			return True
+			return True , bot_path, fire_path
 		if self.initial_fire == self.original_position:
 			print("Initial Fire spawned on the Bot")
-			return True
+			return True , bot_path, fire_path
 
-		return False
+		return False, None, None
 
 
 		
