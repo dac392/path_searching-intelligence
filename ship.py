@@ -5,6 +5,8 @@ from generate_matrix import get_flamability_matrix
 from generate_matrix import get_random
 
 from algorithms import a_star
+from algorithms import walmart_brand_monte_carlo
+from ship_3D import ship_3D
 
 CLOSED = 0
 OPEN = 1
@@ -44,6 +46,8 @@ class ship_t():
 
 		# add initial fire to the fire set
 		self.burning_nodes.add(self.initial_fire)
+		self.simulation = None
+		self.time_step = 0
 
 
 	def heuristic_2(self):
@@ -62,6 +66,24 @@ class ship_t():
 			print("btw, you should update heuristic_3 to ignore padding in this case (basically do bot 2)")
 			return []
 		return path
+
+	def heuristic_4(self):
+		if self.simulation is None:
+			self.simulation = ship_3D(self, self.size)
+			self.simulation.run_simulation(100)
+			self.time_step = 1
+
+		path = self.get_simulated_path()
+		if path is None:
+			return []
+
+		return path
+
+
+
+
+
+
 
 # < SCORCH AND FIRE METHODS >
 	def apply_scorch(self):
@@ -113,6 +135,12 @@ class ship_t():
 
 	def get_shortest_path(self, start, goal, modified=False, radiance=None):
 		path = a_star(self.game_board, start, goal, modified, radiance)
+		if path:
+			path.pop(0)
+		return path
+
+	def get_simulated_path(self):
+		path = walmart_brand_monte_carlo(self.bot, self.goal, self.game_board, self.simulation.game_board[self.time_step])
 		if path:
 			path.pop(0)
 		return path

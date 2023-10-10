@@ -1,5 +1,4 @@
 from generate_matrix import get_random
-from ship import ship_t
 
 CLOSED = -1
 OPEN = 0
@@ -98,30 +97,6 @@ class ship_3D():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def create_3d_array(t, x, y):
 	return [[[0 for _ in range(y)] for _ in range(x)] for _ in range(t)]
 
@@ -142,6 +117,7 @@ def copy_2d_to_3d(grid_3d, grid_2d, time_steps):
 	        		grid_3d[t][i][j] = OPEN
 
 if __name__ == '__main__':
+	from ship import ship_t
 	ship = ship_t(10, 0.5)
 	ship_3d = ship_3D(ship, 10)
 	ship_3d.run_simulation(1000)

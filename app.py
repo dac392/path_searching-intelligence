@@ -58,7 +58,7 @@ def main(board_size, flamability, info=None):
 	driver(ship, None, BOT1)
 	driver(ship, ship.heuristic_2, BOT2)
 	driver(ship, ship.heuristic_3, BOT3)
-	# driver(ship, ship.heuristic_4, BOT4)
+	driver(ship, ship.heuristic_4, BOT4)
 	if DEBUGING and info:
 		print(info)
 
