@@ -149,45 +149,5 @@ def great_value_monte_carlo(start, goal, grid, simulation, weight_fire_prob):
 
 	return None  # No path found
 
-# deprecated - delete later
-def walmart_brand_monte_carlo(start, goal, grid, simulations, current_time_step):
-	start_node = Node(*start)
-	goal_node = Node(*goal)
-	start_node.g = 0
-	start_node.h = heuristic(start_node, goal_node)
-	start_node.f = start_node.h
-
-	open_list = [start_node]
-	closed_list = []
-
-	while open_list:
-		current_node = heapq.heappop(open_list)
-		if current_node == goal_node:
-			path = []
-			while current_node:
-				path.append((current_node.x, current_node.y))
-				current_node = current_node.parent
-			return path[::-1]  # Return reversed path
-
-		# neighbor shenanigans
-		# neighbors = current_node.get_exclusive_neighbors(grid, simulations, current_time_step)
-		neighbors = current_node.get_neighbors(grid)
-		for pos in neighbors:
-			neighbor = Node(pos[0], pos[1])
-
-			if neighbor in closed_list:
-				continue
-
-			neighbor.g = current_node.g + 1
-			neighbor.h = heuristic(neighbor, goal_node)+ P(neighbor, simulation)
-			neighbor.f = neighbor.g + neighbor.h
-			neighbor.parent = current_node
-
-			if neighbor not in open_list:
-				heapq.heappush(open_list, neighbor)
-
-
-	return None  # No path found
-
 
 

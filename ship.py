@@ -77,6 +77,8 @@ class ship_t():
 
 
 # < SCORCH AND FIRE METHODS >
+
+	# takes care of applying burn mechanic onto the board
 	def apply_scorch(self):
 
 		might_scorch = {}
@@ -91,12 +93,14 @@ class ship_t():
 				self.game_board[flamable_cell] = FIRE
 				self.burning_nodes.add(flamable_cell)
 
+	# calculated the probability of a position on the board burning
 	def probability_of_scorching(self, position):
 		q = self.flamability
 		burning_neighbors = self.get_neighbors(position, [FIRE]) #get fire neighbors
 		k = len(burning_neighbors)
 		return 1 - (1-q)**k
 
+	# used primarily for bot 3. updates which nodes are on the perimeter of the currently burning nodes
 	def update_radiance(self):
 		self.radiance.clear()
 
@@ -123,13 +127,14 @@ class ship_t():
 		return valid_neighbors
 
 	
-
+	# calculates shortest path using A*
 	def get_shortest_path(self, start, goal, modified=False, radiance=None):
 		path = a_star(self.game_board, start, goal, modified, radiance)
 		if path:
 			path.pop(0)
 		return path
 
+	# calculates shortest path from bot to goal using shortest paths while running simulated games
 	def get_simulated_path(self):
 		path = great_value_monte_carlo(self.bot, self.goal, self.game_board, self.simulation, self.flamability)
 		if path:
@@ -248,7 +253,7 @@ class ship_t():
 				file.write(line+'\n')
 
 
-# deprecated
+#	 an attempt to speed up games by  getting rid of uninteresting and one sided games
 	def is_doomed(self, bot_path):
 		fire_path =  self.get_shortest_path(self.initial_fire, self.goal)
 		bot_path =  self.get_shortest_path(self.original_position, self.goal)

@@ -9,20 +9,15 @@ BOT4 = 4
 
 DEBUGING = False
 
+# if DEBUGING is set to True, the prorgam will show the game board after each game.
 def debug(ship, path):
 	ship.set_path(path)
 	ship.display_game_board()
 
-
+# run the game for a bot using a particular heuristic
 def run_simulation(ship, path, heuristic=None, bot=BOT1):
 	if not path:
-		return FAILURE, []
-
-	is_doomed, bot_path, reason = ship.is_doomed(path)
-	if is_doomed:
-		return FAILURE, [], reason # the ones with empy  paths are likely uninteresting
-	elif not is_doomed and bot_path:
-		return SUCCESS, bot_path, reason
+		return FAILURE, [], "No path could be found"
 
 	if bot == BOT4:
 		path = heuristic()
@@ -42,6 +37,7 @@ def run_simulation(ship, path, heuristic=None, bot=BOT1):
 			if has_burned_down:
 				return FAILURE, path_taken, reason
 
+		# if the ship is not yet safe, the recalculat the best path unless it is bot 1
 		if bot != BOT1 and not ship.is_safe():
 			path = heuristic()
 			if not path:
@@ -49,6 +45,7 @@ def run_simulation(ship, path, heuristic=None, bot=BOT1):
 
 	return SUCCESS, path_taken, "activated fire supression"
 
+# function used to run each simulation
 def driver(ship, heuristic, bot, ship_id):
 	shortest_path = ship.get_shortest_path(ship.get_origin(), ship.get_goal()) if bot != BOT3 else heuristic()
 
@@ -68,7 +65,7 @@ def driver(ship, heuristic, bot, ship_id):
 	}
 	return data
 
-
+# function used for running the program
 def main(board_size, flamability, ship_id,  info=None):
 	ship = ship_t(board_size, flamability)
 
@@ -83,7 +80,7 @@ def main(board_size, flamability, ship_id,  info=None):
 
 
 
-
+# you can use main along with 'gamoboard_info.txt' to run individual games
 if __name__ == '__main__':
 	# Open the file for reading
 	board_size = None

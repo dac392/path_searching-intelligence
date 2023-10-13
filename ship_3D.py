@@ -7,7 +7,7 @@ BOT = 2
 GOAL = 3
 FIRE = 4
 
-# Concider renaming the class
+# Concider renaming the class - Used for taking care of simulated games
 class ship_3D():
 	def __init__(self, ship_2D, time_steps):
 		self.size = ship_2D.get_size()
