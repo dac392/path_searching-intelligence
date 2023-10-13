@@ -1,4 +1,4 @@
-# Out of the Frying Pan and Into the Flyer - Bot Navigation Simulation
+# Bot Navigation Simulation
 
 Navigate a bot through a burning spaceship, aiming to reach a button to suppress the fire.
 
